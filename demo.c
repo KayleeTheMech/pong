@@ -1,7 +1,5 @@
 /*  demo.c */
 #include <stdbool.h>
-#include <stdio.h>
-#include <time.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
@@ -23,7 +21,7 @@ struct GameElements
     struct Object ball;
 };
 
-struct GameElements elements = {
+struct GameElements element_holder = {
     .ball = {
         .position = {.x = 0.0f, .y = 0.0f},
         .speed = {.x = 0.05f, .y = 0.01f},
@@ -31,26 +29,30 @@ struct GameElements elements = {
 };
 
 void progress_time()
-{ // x
-    if (elements.ball.position.x + elements.ball.speed.x >= 1.0f || elements.ball.position.x + elements.ball.speed.x <= 1.0f)
-    {
-        elements.ball.position.x = elements.ball.position.x - elements.ball.speed.x;
-        elements.ball.speed.x = -elements.ball.speed.x;
-    }
-    else
-    {
-        elements.ball.position.x = elements.ball.position.x + elements.ball.speed.x;
-    }
+{
+    // x
+    struct Vector *position=&(element_holder.ball.position);
+    struct Vector *speed=&(element_holder.ball.speed);
 
-    // y
-    if (elements.ball.position.y + elements.ball.speed.y >= 1.0f || elements.ball.position.y + elements.ball.speed.y <= 1.0f)
-    {
-        elements.ball.position.y = elements.ball.position.y - elements.ball.speed.y;
-        elements.ball.speed.y = -elements.ball.speed.y;
+    if (position->x + speed->x <=1.0f && position->x + speed->x >=-1.0f){
+        // next position within bounds?
+        position->x = position->x + speed->x;
     }
-    else
+    if (position->x + speed->x >= 1.0f || position->x + speed->x <= -1.0f)
     {
-        elements.ball.position.y = elements.ball.position.y + elements.ball.speed.y;
+        // no it hit the bounds, reflect the ball
+        position->x = position->x - speed->x;
+        speed->x = -speed->x;
+    }    
+    if (position->y + speed->y <=1.0f && position->y + speed->y >=-1.0f){
+        // next position within bounds?
+        position->y = position->y + speed->y;
+    }
+    if (position->y + speed->y >= 1.0f || position->y + speed->y <= -1.0f)
+    {
+        // no it hit the bounds, reflect the ball
+        position->y = position->y - speed->y;
+        speed->y = -speed->y;
     }
 }
 
@@ -82,7 +84,7 @@ void routine(int t)
     progress_time();
     // Update display
     glColor3f(1.0f, 1.0f, 1.0f);
-    glRectf(elements.ball.position.x - 0.01f, elements.ball.position.y - 0.01f, elements.ball.position.x + 0.01f, elements.ball.position.y + 0.01f);
+    glRectf(element_holder.ball.position.x - 0.01f, element_holder.ball.position.y - 0.01f, element_holder.ball.position.x + 0.01f, element_holder.ball.position.y + 0.01f);
     glutPostRedisplay();
     glutSwapBuffers();
     // Reset timer
@@ -91,6 +93,7 @@ void routine(int t)
 
 int main(int argc, char *argv[])
 {
+
     init(argc, argv);
     glutTimerFunc(25, routine, 0);
     glutDisplayFunc(init_display);
