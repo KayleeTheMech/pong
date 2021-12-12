@@ -24,9 +24,23 @@ struct GameElements
 struct GameElements element_holder = {
     .ball = {
         .position = {.x = 0.0f, .y = 0.0f},
-        .speed = {.x = 0.05f, .y = 0.01f},
+        .speed = {.x = 0.01f, .y = 0.001f},
     },
 };
+
+void progress_time_in_dimension(float *position_dimension, float *speed_dimension){
+
+    if (*position_dimension + *speed_dimension <=1.0f && *position_dimension + *speed_dimension >=-1.0f){
+        // next position within bounds?
+        *position_dimension = *position_dimension + *speed_dimension;
+    }
+    if (*position_dimension + *speed_dimension >= 1.0f || *position_dimension + *speed_dimension <= -1.0f)
+    {
+        // no it hit the bounds, reflect the ball
+        *position_dimension = *position_dimension -*speed_dimension;
+        *speed_dimension = -*speed_dimension;
+    }
+}
 
 void progress_time()
 {
@@ -34,26 +48,8 @@ void progress_time()
     struct Vector *position=&(element_holder.ball.position);
     struct Vector *speed=&(element_holder.ball.speed);
 
-    if (position->x + speed->x <=1.0f && position->x + speed->x >=-1.0f){
-        // next position within bounds?
-        position->x = position->x + speed->x;
-    }
-    if (position->x + speed->x >= 1.0f || position->x + speed->x <= -1.0f)
-    {
-        // no it hit the bounds, reflect the ball
-        position->x = position->x - speed->x;
-        speed->x = -speed->x;
-    }    
-    if (position->y + speed->y <=1.0f && position->y + speed->y >=-1.0f){
-        // next position within bounds?
-        position->y = position->y + speed->y;
-    }
-    if (position->y + speed->y >= 1.0f || position->y + speed->y <= -1.0f)
-    {
-        // no it hit the bounds, reflect the ball
-        position->y = position->y - speed->y;
-        speed->y = -speed->y;
-    }
+    progress_time_in_dimension(&(position->x), &(speed->x));
+    progress_time_in_dimension(&(position->y), &(speed->y));
 }
 
 void setup()
@@ -88,14 +84,14 @@ void routine(int t)
     glutPostRedisplay();
     glutSwapBuffers();
     // Reset timer
-    glutTimerFunc(100, routine, 0);
+    glutTimerFunc(1, routine, 0);
 }
 
 int main(int argc, char *argv[])
 {
 
     init(argc, argv);
-    glutTimerFunc(25, routine, 0);
+    glutTimerFunc(1, routine, 0);
     glutDisplayFunc(init_display);
     glutMainLoop();
 }
