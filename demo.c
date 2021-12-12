@@ -13,7 +13,18 @@ struct Vector
     float y;
 };
 
-struct Object
+struct Rectangle
+{
+    float x1, x2;
+    float y1, y2;
+};
+struct MassiveObject
+{
+    struct Vector position;
+    struct Rectangle rectangle;
+};
+
+struct InertialObject
 {
     struct Vector position;
     struct Vector speed;
@@ -21,13 +32,23 @@ struct Object
 
 struct GameElements
 {
-    struct Object ball;
+    struct MassiveObject player_bat;
+    struct InertialObject ball;
 };
 
 struct GameElements element_holder = {
+    .player_bat = {
+        .position = {
+            .x = -0.9f, .y = 0.0f},
+        .rectangle = {
+            .x1 = -0.02f,
+            .y1 = -0.14f,
+            .x2 = 0.02f,
+            .y2 = 0.14f,
+        }},
     .ball = {
-        .position = {.x = 0.0f, .y = 0.0f},
-        .speed = {.x = 0.01f, .y = 0.001f},
+        .position = {.x = 0.0f, .y = -0.05f},
+        .speed = {.x = -0.015f, .y = 0.002f},
     },
 };
 
@@ -46,12 +67,38 @@ void progress_time_in_dimension(float *position_dimension, float *speed_dimensio
     }
 }
 
+bool within_dimension(float pos, float mark1, float mark2)
+{
+    return (pos >= mark1 && pos <= mark2) || (pos <= mark1 && pos >= mark2);
+}
+
+bool vector_within_massive_object(struct Vector vector, struct MassiveObject object)
+{
+    struct Rectangle rectangle = {
+        .x1 = object.position.x + object.rectangle.x1,
+        .y1 = object.position.y + object.rectangle.y1,
+        .x2 = object.position.x + object.rectangle.x2,
+        .y2 = object.position.y + object.rectangle.y2,
+    };
+    bool within_x = within_dimension(vector.x, rectangle.x1, rectangle.x2);
+    bool within_y = within_dimension(vector.y, rectangle.y1, rectangle.y2);
+    return within_x && within_y;
+}
+
+void collide_with_object(struct InertialObject *ball, struct MassiveObject *bat)
+{
+    if (vector_within_massive_object((*ball).position, *bat))
+    {
+        ball->speed.x = -ball->speed.x;
+        ball->speed.y = -ball->speed.y;
+    };
+}
+
 void progress_time()
 {
-    // x
     struct Vector *position = &(element_holder.ball.position);
     struct Vector *speed = &(element_holder.ball.speed);
-
+    collide_with_object(&(element_holder.ball), &(element_holder.player_bat));
     progress_time_in_dimension(&(position->x), &(speed->x));
     progress_time_in_dimension(&(position->y), &(speed->y));
 }
@@ -84,10 +131,18 @@ void routine(int t)
     progress_time();
     // Update display
     glColor3f(1.0f, 1.0f, 1.0f);
-    glRectf(element_holder.ball.position.x - BALL_SIZE / 2,
-            element_holder.ball.position.y - BALL_SIZE / 2,
-            element_holder.ball.position.x + BALL_SIZE / 2,
-            element_holder.ball.position.y + BALL_SIZE / 2);
+    // paint ball
+    glRectf(
+        element_holder.ball.position.x - BALL_SIZE / 2,
+        element_holder.ball.position.y - BALL_SIZE / 2,
+        element_holder.ball.position.x + BALL_SIZE / 2,
+        element_holder.ball.position.y + BALL_SIZE / 2);
+    // paint player bat
+    glRectf(
+        element_holder.player_bat.position.x + element_holder.player_bat.rectangle.x1,
+        element_holder.player_bat.position.y + element_holder.player_bat.rectangle.y1,
+        element_holder.player_bat.position.x + element_holder.player_bat.rectangle.x2,
+        element_holder.player_bat.position.y + element_holder.player_bat.rectangle.y2);
     glutPostRedisplay();
     glutSwapBuffers();
     // Reset timer
