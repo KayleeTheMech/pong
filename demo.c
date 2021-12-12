@@ -4,6 +4,9 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 
+const float FIELD_LIMIT = 1.0f;
+const float BALL_SIZE = 0.04f;
+
 struct Vector
 {
     float x;
@@ -28,16 +31,17 @@ struct GameElements element_holder = {
     },
 };
 
-void progress_time_in_dimension(float *position_dimension, float *speed_dimension){
-
-    if (*position_dimension + *speed_dimension <=1.0f && *position_dimension + *speed_dimension >=-1.0f){
+void progress_time_in_dimension(float *position_dimension, float *speed_dimension)
+{
+    if (*position_dimension + *speed_dimension <= FIELD_LIMIT && *position_dimension + *speed_dimension >= -FIELD_LIMIT)
+    {
         // next position within bounds?
         *position_dimension = *position_dimension + *speed_dimension;
     }
-    if (*position_dimension + *speed_dimension >= 1.0f || *position_dimension + *speed_dimension <= -1.0f)
+    if (*position_dimension + *speed_dimension >= FIELD_LIMIT || *position_dimension + *speed_dimension <= -FIELD_LIMIT)
     {
         // no it hit the bounds, reflect the ball
-        *position_dimension = *position_dimension -*speed_dimension;
+        *position_dimension = *position_dimension - *speed_dimension;
         *speed_dimension = -*speed_dimension;
     }
 }
@@ -45,8 +49,8 @@ void progress_time_in_dimension(float *position_dimension, float *speed_dimensio
 void progress_time()
 {
     // x
-    struct Vector *position=&(element_holder.ball.position);
-    struct Vector *speed=&(element_holder.ball.speed);
+    struct Vector *position = &(element_holder.ball.position);
+    struct Vector *speed = &(element_holder.ball.speed);
 
     progress_time_in_dimension(&(position->x), &(speed->x));
     progress_time_in_dimension(&(position->y), &(speed->y));
@@ -80,7 +84,10 @@ void routine(int t)
     progress_time();
     // Update display
     glColor3f(1.0f, 1.0f, 1.0f);
-    glRectf(element_holder.ball.position.x - 0.01f, element_holder.ball.position.y - 0.01f, element_holder.ball.position.x + 0.01f, element_holder.ball.position.y + 0.01f);
+    glRectf(element_holder.ball.position.x - BALL_SIZE / 2,
+            element_holder.ball.position.y - BALL_SIZE / 2,
+            element_holder.ball.position.x + BALL_SIZE / 2,
+            element_holder.ball.position.y + BALL_SIZE / 2);
     glutPostRedisplay();
     glutSwapBuffers();
     // Reset timer
