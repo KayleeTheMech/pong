@@ -5,6 +5,7 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 
+const int MSEC_PER_FRAME = 1;
 const float FIELD_LIMIT = 1.0f;
 const float BALL_SIZE = 0.04f;
 const float BAT_SPEED = 0.05f;
@@ -115,7 +116,7 @@ void progress_time()
     progress_time_in_dimension(&(position->y), &(speed->y));
 }
 
-void keyPressed(unsigned char key, int x, int y)
+void key_pressed(unsigned char key, int x, int y)
 {
     if (key == 'w')
     {
@@ -129,7 +130,7 @@ void keyPressed(unsigned char key, int x, int y)
     }
 }
 
-void keyUp(unsigned char key, int x, int y)
+void key_up(unsigned char key, int x, int y)
 {
     if (key == 'w')
     {
@@ -145,8 +146,8 @@ void keyUp(unsigned char key, int x, int y)
 
 void setup()
 {
-    glutKeyboardFunc(keyPressed);
-    glutKeyboardUpFunc(keyUp);
+    glutKeyboardFunc(key_pressed);
+    glutKeyboardUpFunc(key_up);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
@@ -166,7 +167,7 @@ void init_display()
     glRectf(-0.99f, 0.99f, 0.99f, -0.99f);
 }
 
-void routine(int t)
+void game_loop(int t)
 {
     init_display();
     // Progress Time
@@ -188,14 +189,14 @@ void routine(int t)
     glutPostRedisplay();
     glutSwapBuffers();
     // Reset timer
-    glutTimerFunc(1, routine, 0);
+    glutTimerFunc(MSEC_PER_FRAME, game_loop, 0);
 }
 
 int main(int argc, char *argv[])
 {
 
     init(argc, argv);
-    glutTimerFunc(1, routine, 0);
+    glutTimerFunc(MSEC_PER_FRAME, game_loop, 0);
     glutDisplayFunc(init_display);
     glutMainLoop();
 }
