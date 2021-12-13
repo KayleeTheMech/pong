@@ -1,11 +1,15 @@
 /*  demo.c */
 #include <stdbool.h>
+#include <stdio.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
 
 const float FIELD_LIMIT = 1.0f;
 const float BALL_SIZE = 0.04f;
+const float BAT_SPEED = 0.05f;
+bool move_player_bat_up = false;
+bool move_player_bat_down = false;
 
 struct Vector
 {
@@ -98,13 +102,51 @@ void progress_time()
 {
     struct Vector *position = &(element_holder.ball.position);
     struct Vector *speed = &(element_holder.ball.speed);
+    if (move_player_bat_up)
+    {
+        element_holder.player_bat.position.y = element_holder.player_bat.position.y + BAT_SPEED;
+    }
+    else if (move_player_bat_down)
+    {
+        element_holder.player_bat.position.y = element_holder.player_bat.position.y - BAT_SPEED;
+    }
     collide_with_object(&(element_holder.ball), &(element_holder.player_bat));
     progress_time_in_dimension(&(position->x), &(speed->x));
     progress_time_in_dimension(&(position->y), &(speed->y));
 }
 
+void keyPressed(unsigned char key, int x, int y)
+{
+    if (key == 'w')
+    {
+        // trigger up movement
+        move_player_bat_up = true;
+    }
+    else if (key == 's')
+    {
+        // trigger down movement
+        move_player_bat_down = true;
+    }
+}
+
+void keyUp(unsigned char key, int x, int y)
+{
+    if (key == 'w')
+    {
+        // end up movement
+        move_player_bat_up = false;
+    }
+    else if (key == 's')
+    {
+        // end down movement
+        move_player_bat_down = false;
+    }
+}
+
 void setup()
 {
+    glutKeyboardFunc(keyPressed);
+    glutKeyboardUpFunc(keyUp);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
@@ -112,7 +154,7 @@ void init(int argc, char *argv[])
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-    glutInitWindowSize(1024, 768);
+    glutInitWindowSize(1024, 1024);
     glutCreateWindow("Pong Test");
     setup();
 }
