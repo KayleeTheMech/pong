@@ -1,63 +1,123 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <time.h>
 #include <stdbool.h>
+#include "pong.h"
+#include "structs.h"
 
-typedef struct Pong
+void progress_time_in_dimension(float *position_dimension, float *speed_dimension);
+bool within_dimension(float pos, float mark1, float mark2);
+bool vector_within_massive_object(struct Vector vector, struct MassiveObject object);
+void collide_with_object(struct InertialObject *ball, struct MassiveObject *bat);
+
+const float FIELD_LIMIT = 1.0f;
+const float BAT_SPEED = 0.05f;
+
+bool move_player_bat_up = false;
+bool move_player_bat_down = false;
+
+struct GameElements element_holder = {
+    .player_bat = {
+        .position = {
+            .x = -0.9f, .y = 0.0f},
+        .rectangle = {
+            .x1 = -0.02f,
+            .y1 = -0.14f,
+            .x2 = 0.02f,
+            .y2 = 0.14f,
+        }},
+    .ball = {
+        .position = {.x = 0.0f, .y = -0.05f},
+        .speed = {.x = -0.015f, .y = 0.002f},
+    },
+};
+
+/*
+ * Function:  move_up (bool)
+ * --------------------
+ * Signals that you want to move the player bat upwards or stop moving upwards.
+ */
+void move_up(bool value)
 {
-    uint16_t position_x;
-    uint16_t position_y;
-    int16_t speed_x;
-    int16_t speed_y;
-} Pong;
+    move_player_bat_up = value;
+}
 
-typedef struct PlayingField
+/*
+ * Function:  move_down (bool)
+ * --------------------
+ * Signals that you want to move the player bat downwards or stop moving downwards.
+ */
+void move_down(bool value)
 {
-    uint16_t width;
-    uint16_t height;
-} PlayingField;
+    move_player_bat_down = value;
+}
 
-void step_time_on_pong(Pong *pong, PlayingField *field)
+/*
+ * Function:  get_game_elements
+ * --------------------
+ * Retrieves all GameElements with their current state.
+ */
+struct GameElements get_game_elements(void)
 {
-    int16_t next_x = pong->position_x + pong->speed_x;
-    int16_t next_y = pong->position_y + pong->speed_y;
-    // check if next x position is in playing field
-    if (next_x >= 0 && next_x < field->width)
-    {
-        // yes just set next_x
-        pong->position_x = next_x;
-    }
-    else
-    {
-        // no, change direction of speed_x
-        pong->speed_x = -pong->speed_x;
-        pong->position_x = pong->position_x + pong->speed_x;
-    }
+    return element_holder;
+}
 
-    // check if next y position is in playing field
-    if (next_y >= 0 && next_y < field->width)
+/*
+ * Function:  progress_time
+ * --------------------
+ * Tells the pong model to calculate the states for the next time step.
+ */
+void progress_time(void)
+{
+    struct Vector *position = &(element_holder.ball.position);
+    struct Vector *speed = &(element_holder.ball.speed);
+    if (move_player_bat_up)
     {
-        // yes just set next_y
-        pong->position_y = next_y;
+        element_holder.player_bat.position.y = element_holder.player_bat.position.y + BAT_SPEED;
     }
-    else
+    else if (move_player_bat_down)
     {
-        // no, change direction of speed_x
-        pong->speed_y = -pong->speed_y;
-        pong->position_y = pong->position_y + pong->speed_y;
+        element_holder.player_bat.position.y = element_holder.player_bat.position.y - BAT_SPEED;
+    }
+    collide_with_object(&(element_holder.ball), &(element_holder.player_bat));
+    progress_time_in_dimension(&(position->x), &(speed->x));
+    progress_time_in_dimension(&(position->y), &(speed->y));
+}
+
+void progress_time_in_dimension(float *position_dimension, float *speed_dimension)
+{
+    if (*position_dimension + *speed_dimension <= FIELD_LIMIT && *position_dimension + *speed_dimension >= -FIELD_LIMIT)
+    {
+        *position_dimension = *position_dimension + *speed_dimension;
+    }
+    if (*position_dimension + *speed_dimension >= FIELD_LIMIT || *position_dimension + *speed_dimension <= -FIELD_LIMIT)
+    {
+        // no it hit the bounds, reflect the ball
+        *position_dimension = *position_dimension - *speed_dimension;
+        *speed_dimension = -*speed_dimension;
     }
 }
- 
-int main()
+
+bool within_dimension(float pos, float mark1, float mark2)
 {
-    PlayingField field = {.width = 1000, .height = 600};
-    Pong pong = {.position_x = 0, .position_y = 0, .speed_x = 20, .speed_y = 10};
-    struct timespec delta = {0 /*secs*/, 50 * 1000000 /*nanosecs*/};
-    do
+    return (pos >= mark1 && pos <= mark2) || (pos <= mark1 && pos >= mark2);
+}
+
+bool vector_within_massive_object(struct Vector vector, struct MassiveObject object)
+{
+    struct Rectangle rectangle = {
+        .x1 = object.position.x + object.rectangle.x1,
+        .y1 = object.position.y + object.rectangle.y1,
+        .x2 = object.position.x + object.rectangle.x2,
+        .y2 = object.position.y + object.rectangle.y2,
+    };
+    bool within_x = within_dimension(vector.x, rectangle.x1, rectangle.x2);
+    bool within_y = within_dimension(vector.y, rectangle.y1, rectangle.y2);
+    return within_x && within_y;
+}
+
+void collide_with_object(struct InertialObject *ball, struct MassiveObject *bat)
+{
+    if (vector_within_massive_object((*ball).position, *bat))
     {
-        step_time_on_pong(&pong, &field);
-        printf("%d, %d\n", pong.position_x, pong.position_y);
-        nanosleep(&delta, &delta);
-    } while (true);
-    return 0;
+        ball->speed.x = -ball->speed.x;
+        ball->speed.y = -ball->speed.y;
+    };
 }
