@@ -58,6 +58,15 @@ void reset_display()
     glRectf(-0.99f, 0.99f, 0.99f, -0.99f);
 }
 
+void paint_massive_object(struct MassiveObject object)
+{
+    glRectf(
+        object.position.x + object.rectangle.x1,
+        object.position.y + object.rectangle.y1,
+        object.position.x + object.rectangle.x2,
+        object.position.y + object.rectangle.y2);
+}
+
 void paint_objects(void)
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -68,11 +77,9 @@ void paint_objects(void)
         get_game_elements().ball.position.x + BALL_SIZE / 2,
         get_game_elements().ball.position.y + BALL_SIZE / 2);
     // paint player bat
-    glRectf(
-        get_game_elements().player_bat.position.x + get_game_elements().player_bat.rectangle.x1,
-        get_game_elements().player_bat.position.y + get_game_elements().player_bat.rectangle.y1,
-        get_game_elements().player_bat.position.x + get_game_elements().player_bat.rectangle.x2,
-        get_game_elements().player_bat.position.y + get_game_elements().player_bat.rectangle.y2);
+    paint_massive_object(get_game_elements().player_bat);
+    // paint player bat
+    paint_massive_object(get_game_elements().opponent_bat);
 }
 
 void game_loop(int t)

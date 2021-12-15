@@ -14,6 +14,7 @@ struct Rectangle
 struct MassiveObject
 {
     struct Vector position;
+    struct Vector speed;
     struct Rectangle rectangle;
 };
 
@@ -26,6 +27,7 @@ struct InertialObject
 struct GameElements
 {
     struct MassiveObject player_bat;
+    struct MassiveObject opponent_bat;
     struct InertialObject ball;
 };
 
