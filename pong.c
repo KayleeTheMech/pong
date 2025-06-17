@@ -1,4 +1,6 @@
 #include <stdbool.h>
+
+#define _POSIX_C_SOURCE 199309L
 #include <time.h>
 #include "pong.h"
 #include "structs.h"
@@ -163,7 +165,7 @@ void move_bats()
 long get_millis()
 {
     struct timespec ts;
-    timespec_get(&ts, TIME_UTC);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
     return ((long)ts.tv_sec * 1000000000L + ts.tv_nsec) / 1000000L;
 }
 
@@ -172,7 +174,7 @@ long last_decided=0L;
 void ai_routine()
 {
     long current_time = get_millis();
-    if (300 < (current_time - last_decided)) // allow computer player a decision every 300 ms
+    if (200 < (current_time - last_decided)) // allow computer player a decision every 200 ms
     {
         last_decided = current_time;
         if (element_holder.ball.position.y > element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y2)
