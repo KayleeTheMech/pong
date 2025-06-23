@@ -25,5 +25,5 @@ struct GameElements get_game_elements(void);
  * --------------------
  * Tells the pong model to calculate the states for the next time step.
  */
-void progress_time(void);
+void progress_time(bool two_players);
 #endif

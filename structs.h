@@ -30,5 +30,4 @@ struct GameElements
     struct MassiveObject opponent_bat;
     struct InertialObject ball;
 };
-
 #endif

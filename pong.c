@@ -1,9 +1,9 @@
 #include <stdbool.h>
 
 #define _POSIX_C_SOURCE 199309L
-#include <time.h>
 #include "pong.h"
 #include "structs.h"
+#include <time.h>
 
 // declarations for this file
 void progress_time_in_dimension(float *position_dimension, float *speed_dimension);
@@ -17,29 +17,32 @@ const float FIELD_LIMIT = 1.0f;
 const float BAT_SPEED = 0.02f;
 
 struct GameElements element_holder = {
-    .player_bat = {
-        .position = {.x = -0.9f, .y = 0.0f},
-        .rectangle = {
-            .x1 = -0.02f,
-            .y1 = -0.14f,
-            .x2 = 0.02f,
-            .y2 = 0.14f,
+    .player_bat = {.position = {.x = -0.9f, .y = 0.0f},
+                   .rectangle =
+                       {
+                           .x1 = -0.02f,
+                           .y1 = -0.14f,
+                           .x2 = 0.02f,
+                           .y2 = 0.14f,
+                       },
+                   .speed = {.x = 0.0f, .y = 0.0f}},
+    .opponent_bat =
+        {
+            .position = {.x = 0.9f, .y = 0.0f},
+            .rectangle =
+                {
+                    .x1 = -0.02f,
+                    .y1 = -0.14f,
+                    .x2 = 0.02f,
+                    .y2 = 0.14f,
+                },
+            .speed = {.x = 0.0f, .y = 0.0f},
         },
-        .speed = {.x = 0.0f, .y = 0.0f}},
-    .opponent_bat = {
-        .position = {.x = 0.9f, .y = 0.0f},
-        .rectangle = {
-            .x1 = -0.02f,
-            .y1 = -0.14f,
-            .x2 = 0.02f,
-            .y2 = 0.14f,
+    .ball =
+        {
+            .position = {.x = 0.0f, .y = -0.05f},
+            .speed = {.x = +0.02f, .y = 0.008f},
         },
-        .speed = {.x = 0.0f, .y = 0.0f},
-    },
-    .ball = {
-        .position = {.x = 0.0f, .y = -0.05f},
-        .speed = {.x = +0.02f, .y = 0.008f},
-    },
 };
 
 /*
@@ -81,21 +84,20 @@ void move_down(bool value)
  * --------------------
  * Retrieves all GameElements with their current state.
  */
-struct GameElements get_game_elements(void)
-{
-    return element_holder;
-}
+struct GameElements get_game_elements(void) { return element_holder; }
 
 /*
  * Function:  progress_time
  * --------------------
  * Tells the pong model to calculate the states for the next time step.
  */
-void progress_time(void)
+void progress_time(bool two_players)
 {
     struct Vector *position = &(element_holder.ball.position);
     struct Vector *speed = &(element_holder.ball.speed);
-    ai_routine();
+
+    if (!two_players)
+        ai_routine();
     move_bats();
     collide_with_object(&(element_holder.ball), &(element_holder.player_bat));
     collide_with_object(&(element_holder.ball), &(element_holder.opponent_bat));
@@ -105,11 +107,13 @@ void progress_time(void)
 
 void progress_time_in_dimension(float *position_dimension, float *speed_dimension)
 {
-    if (*position_dimension + *speed_dimension <= FIELD_LIMIT && *position_dimension + *speed_dimension >= -FIELD_LIMIT)
+    if (*position_dimension + *speed_dimension <= FIELD_LIMIT &&
+        *position_dimension + *speed_dimension >= -FIELD_LIMIT)
     {
         *position_dimension = *position_dimension + *speed_dimension;
     }
-    if (*position_dimension + *speed_dimension >= FIELD_LIMIT || *position_dimension + *speed_dimension <= -FIELD_LIMIT)
+    if (*position_dimension + *speed_dimension >= FIELD_LIMIT ||
+        *position_dimension + *speed_dimension <= -FIELD_LIMIT)
     {
         // no it hit the bounds, reflect the ball
         *position_dimension = *position_dimension - *speed_dimension;
@@ -145,7 +149,8 @@ void collide_with_object(struct InertialObject *ball, struct MassiveObject *bat)
 
 void move_bat(struct MassiveObject *bat)
 {
-    if ((*bat).position.y + (*bat).speed.y <= FIELD_LIMIT && (*bat).position.y + (*bat).speed.y >= -FIELD_LIMIT)
+    if ((*bat).position.y + (*bat).speed.y <= FIELD_LIMIT &&
+        (*bat).position.y + (*bat).speed.y >= -FIELD_LIMIT)
     {
         (*bat).position.y = (*bat).position.y + (*bat).speed.y;
     }
@@ -169,19 +174,20 @@ long get_millis()
     return ((long)ts.tv_sec * 1000000000L + ts.tv_nsec) / 1000000L;
 }
 
-
-long last_decided=0L;
+long last_decided = 0L;
 void ai_routine()
 {
     long current_time = get_millis();
     if (200 < (current_time - last_decided)) // allow computer player a decision every 200 ms
     {
         last_decided = current_time;
-        if (element_holder.ball.position.y > element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y2)
+        if (element_holder.ball.position.y >
+            element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y2)
         {
             element_holder.opponent_bat.speed.y = BAT_SPEED;
         }
-        else if (element_holder.ball.position.y < element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y1)
+        else if (element_holder.ball.position.y <
+                 element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y1)
         {
             element_holder.opponent_bat.speed.y = -BAT_SPEED;
         }
