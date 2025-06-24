@@ -50,15 +50,24 @@ struct GameElements element_holder = {
  * --------------------
  * Signals that you want to move the player bat upwards or stop moving upwards.
  */
-void move_up(bool value)
+void move_up(bool value, bool player_one)
 {
-    if (value)
+    struct MassiveObject *bat;
+    if (player_one)
     {
-        element_holder.player_bat.speed.y = BAT_SPEED;
+        bat = &(element_holder.player_bat);
     }
     else
     {
-        element_holder.player_bat.speed.y = 0;
+        bat = &(element_holder.opponent_bat);
+    }
+    if (value)
+    {
+        (*bat).speed.y = BAT_SPEED;
+    }
+    else
+    {
+        (*bat).speed.y = 0;
     }
 }
 
@@ -67,15 +76,25 @@ void move_up(bool value)
  * --------------------
  * Signals that you want to move the player bat downwards or stop moving downwards.
  */
-void move_down(bool value)
+void move_down(bool value, bool player_one)
 {
-    if (value)
+    struct MassiveObject *bat;
+    if (player_one)
     {
-        element_holder.player_bat.speed.y = -BAT_SPEED;
+        bat = &(element_holder.player_bat);
     }
     else
     {
-        element_holder.player_bat.speed.y = 0;
+        bat = &(element_holder.opponent_bat);
+    }
+
+    if (value)
+    {
+        (*bat).speed.y = -BAT_SPEED;
+    }
+    else
+    {
+        (*bat).speed.y = 0;
     }
 }
 

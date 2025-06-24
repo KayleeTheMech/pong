@@ -21,12 +21,25 @@ void key_pressed(unsigned char key, int x, int y)
     if (key == 'w')
     {
         // trigger up movement
-        move_up(true);
+        move_up(true, true);
     }
     else if (key == 's')
     {
         // trigger down movement
-        move_down(true);
+        move_down(true, true);
+    }
+}
+void key_special_pressed(int key, int x, int y)
+{
+    if (key == GLUT_KEY_UP && two_player_flag)
+    {
+        // up arrow key pressed
+        move_up(true, false);
+    }
+    else if (key == GLUT_KEY_DOWN && two_player_flag)
+    {
+        // down arrow key pressed
+        move_down(true, false);
     }
 }
 
@@ -35,12 +48,26 @@ void key_released(unsigned char key, int x, int y)
     if (key == 'w')
     {
         // end up movement
-        move_up(false);
+        move_up(false, true);
     }
     else if (key == 's')
     {
         // end down movement
-        move_down(false);
+        move_down(false, true);
+    }
+}
+
+void key_special_released(int key, int x, int y)
+{
+    if (key == GLUT_KEY_UP && two_player_flag)
+    {
+        // up arrow key released
+        move_up(false, false);
+    }
+    else if (key == GLUT_KEY_DOWN && two_player_flag)
+    {
+        // down arrow key released(
+        move_down(false, false);
     }
 }
 
@@ -52,6 +79,8 @@ void init(int argc, char *argv[])
     glutCreateWindow("Pong Test");
     glutKeyboardFunc(key_pressed);
     glutKeyboardUpFunc(key_released);
+    glutSpecialFunc(key_special_pressed);
+    glutSpecialUpFunc(key_special_released);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glutTimerFunc(MSEC_PER_FRAME, game_loop, 0);
 }

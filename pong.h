@@ -1,19 +1,20 @@
 #ifndef PONG_H_
 #define PONG_H_
 #include "structs.h"
+#include <stdbool.h>
 
 /*
  * Function:  move_up (bool)
  * --------------------
  * Signals that you want to move the player bat upwards or stop moving upwards.
  */
-void move_up(bool value);
+void move_up(bool value, bool player_one);
 /*
  * Function:  move_down (bool)
  * --------------------
  * Signals that you want to move the player bat downwards or stop moving downwards.
  */
-void move_down(bool value);
+void move_down(bool value, bool player_one);
 /*
  * Function:  get_game_elements
  * --------------------
