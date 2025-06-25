@@ -15,6 +15,9 @@ void move_up(bool value, bool player_one);
  * Signals that you want to move the player bat downwards or stop moving downwards.
  */
 void move_down(bool value, bool player_one);
+
+void tilt_bat(float tilt_angle, bool player_one);
+
 /*
  * Function:  get_game_elements
  * --------------------
@@ -27,4 +30,5 @@ struct GameElements get_game_elements(void);
  * Tells the pong model to calculate the states for the next time step.
  */
 void progress_time(bool two_players);
+
 #endif

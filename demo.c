@@ -5,12 +5,17 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <getopt.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifndef __GNUC__
+#pragma STDC FENV_ACCESS ON
+#endif
+
 const int MSEC_PER_FRAME = 1;
 const float BALL_SIZE = 0.04f;
-
+const float MAX_TILT = 0.5f;
 static bool two_player_flag = false;
 static struct option long_options[] = {{"two-person", no_argument, 0, 't'}, {0, 0, 0, 0}};
 
@@ -18,15 +23,24 @@ void game_loop(int t);
 
 void key_pressed(unsigned char key, int x, int y)
 {
-    if (key == 'w')
+    switch (key)
     {
+    case 'w':
         // trigger up movement
         move_up(true, true);
-    }
-    else if (key == 's')
-    {
+        break;
+    case 's':
         // trigger down movement
         move_down(true, true);
+        break;
+    case 'a':
+        tilt_bat(-MAX_TILT, true);
+        break;
+    case 'd':
+        tilt_bat(MAX_TILT, true);
+        break;
+    default:
+        break;
     }
 }
 void key_special_pressed(int key, int x, int y)
@@ -45,15 +59,24 @@ void key_special_pressed(int key, int x, int y)
 
 void key_released(unsigned char key, int x, int y)
 {
-    if (key == 'w')
+    switch (key)
     {
+    case 'w':
         // end up movement
         move_up(false, true);
-    }
-    else if (key == 's')
-    {
+        break;
+    case 's':
         // end down movement
         move_down(false, true);
+        break;
+    case 'a':
+        tilt_bat(0, true);
+        break;
+    case 'd':
+        tilt_bat(0, true);
+        break;
+    default:
+        break;
     }
 }
 
@@ -92,10 +115,35 @@ void reset_display()
     glRectf(-0.99f, 0.99f, 0.99f, -0.99f);
 }
 
+void rotate_coordinates(float alpha, float *x, float *y)
+{
+    // || cos(alpha)   -sin(alpha) ||  | x |
+    // || sin(alpha)   cos(alpha) ||  | y |
+    *x = cosf(alpha) * *x - sinf(alpha) * *y;
+    *y = sinf(alpha) * *x + cosf(alpha) * *y;
+}
+
 void paint_massive_object(struct MassiveObject object)
 {
-    glRectf(object.position.x + object.rectangle.x1, object.position.y + object.rectangle.y1,
-            object.position.x + object.rectangle.x2, object.position.y + object.rectangle.y2);
+    glBegin(GL_POLYGON);
+
+    float x1 = -object.rectangle.width / 2;
+    float y1 = -object.rectangle.height / 2;
+    rotate_coordinates(object.tilt, &x1, &y1);
+    glVertex2f(object.position.x + x1, object.position.y + y1);
+    float x2 = -object.rectangle.width / 2;
+    float y2 = object.rectangle.height / 2;
+    rotate_coordinates(object.tilt, &x2, &y2);
+    glVertex2f(object.position.x + x2, object.position.y + y2);
+    float x3 = object.rectangle.width / 2;
+    float y3 = object.rectangle.height / 2;
+    rotate_coordinates(object.tilt, &x3, &y3);
+    glVertex2f(object.position.x + x3, object.position.y + y3);
+    float x4 = object.rectangle.width / 2;
+    float y4 = -object.rectangle.height / 2;
+    rotate_coordinates(object.tilt, &x4, &y4);
+    glVertex2f(object.position.x + x4, object.position.y + y4);
+    glEnd();
 }
 
 void paint_objects(void)

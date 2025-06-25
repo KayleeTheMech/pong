@@ -8,14 +8,15 @@ struct Vector
 
 struct Rectangle
 {
-    float x1, x2;
-    float y1, y2;
+    float width;
+    float height;
 };
 struct MassiveObject
 {
     struct Vector position;
     struct Vector speed;
     struct Rectangle rectangle;
+    float tilt; // tilt angle
 };
 
 struct InertialObject

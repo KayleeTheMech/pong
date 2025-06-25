@@ -15,28 +15,30 @@ void ai_routine(void);
 
 const float FIELD_LIMIT = 1.0f;
 const float BAT_SPEED = 0.02f;
-
+// const float MAX_TILT = 0.5f;
 struct GameElements element_holder = {
-    .player_bat = {.position = {.x = -0.9f, .y = 0.0f},
-                   .rectangle =
-                       {
-                           .x1 = -0.02f,
-                           .y1 = -0.14f,
-                           .x2 = 0.02f,
-                           .y2 = 0.14f,
-                       },
-                   .speed = {.x = 0.0f, .y = 0.0f}},
+    .player_bat =
+        {
+            .position = {.x = -0.9f, .y = 0.0f},
+            .rectangle =
+                {
+                    .height = 0.28f,
+                    .width = 0.04f,
+                },
+            .speed = {.x = 0.0f, .y = 0.0f},
+            .tilt = 0.0f,
+        },
+
     .opponent_bat =
         {
             .position = {.x = 0.9f, .y = 0.0f},
             .rectangle =
                 {
-                    .x1 = -0.02f,
-                    .y1 = -0.14f,
-                    .x2 = 0.02f,
-                    .y2 = 0.14f,
+                    .height = 0.28f,
+                    .width = 0.04f,
                 },
             .speed = {.x = 0.0f, .y = 0.0f},
+            .tilt = 0.0f,
         },
     .ball =
         {
@@ -98,6 +100,20 @@ void move_down(bool value, bool player_one)
     }
 }
 
+void tilt_bat(float tilt_angle, bool player_one)
+{
+    struct MassiveObject *bat;
+    if (player_one)
+    {
+        bat = &(element_holder.player_bat);
+    }
+    else
+    {
+        bat = &(element_holder.opponent_bat);
+    }
+
+    (*bat).tilt = tilt_angle;
+}
 /*
  * Function:  get_game_elements
  * --------------------
@@ -147,14 +163,10 @@ bool within_dimension(float pos, float mark1, float mark2)
 
 bool vector_within_massive_object(struct Vector vector, struct MassiveObject object)
 {
-    struct Rectangle rectangle = {
-        .x1 = object.position.x + object.rectangle.x1,
-        .y1 = object.position.y + object.rectangle.y1,
-        .x2 = object.position.x + object.rectangle.x2,
-        .y2 = object.position.y + object.rectangle.y2,
-    };
-    bool within_x = within_dimension(vector.x, rectangle.x1, rectangle.x2);
-    bool within_y = within_dimension(vector.y, rectangle.y1, rectangle.y2);
+    bool within_x = within_dimension(vector.x, object.position.x - object.rectangle.width / 2,
+                                     object.position.x + object.rectangle.width / 2);
+    bool within_y = within_dimension(vector.y, object.position.y - object.rectangle.height / 2,
+                                     object.position.y + object.rectangle.height / 2);
     return within_x && within_y;
 }
 
@@ -200,13 +212,14 @@ void ai_routine()
     if (200 < (current_time - last_decided)) // allow computer player a decision every 200 ms
     {
         last_decided = current_time;
-        if (element_holder.ball.position.y >
-            element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y2)
+        if (element_holder.ball.position.y > element_holder.opponent_bat.position.y -
+                                                 element_holder.opponent_bat.rectangle.height / 2)
         {
             element_holder.opponent_bat.speed.y = BAT_SPEED;
         }
         else if (element_holder.ball.position.y <
-                 element_holder.opponent_bat.position.y + element_holder.opponent_bat.rectangle.y1)
+                 element_holder.opponent_bat.position.y +
+                     element_holder.opponent_bat.rectangle.height / 2)
         {
             element_holder.opponent_bat.speed.y = -BAT_SPEED;
         }
